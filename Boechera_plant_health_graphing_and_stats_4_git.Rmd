@@ -1,0 +1,92 @@
+---
+title: "Boechera Plant Health Graphing and Stats"
+author: "Courtney Cameron"
+date: "2025-11-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+
+bdep <- read.table('BdepCFmaster.txt')
+head(bdep)
+
+library(ggplot2)
+library(ggpattern)
+library(reshape2)
+library(stringr)
+
+bdep$V2 <- as.factor(bdep$V2)
+bdep$V4 <- as.factor(bdep$V4)
+
+bdepr <- bdep
+bdepr$V2 <- factor(bdepr$V2, c('T1','T6','T2','T4','T7','T3','T2M'))
+head(bdepr)
+
+
+#graphing and statistics for Boechera health data
+
+list <- c('0'='none', '14'='stripes')
+bpbdep_master <- ggplot(subset(bdepr, V2 %in% c('T1','T2','T4','T6')), names= label, aes(x=V2, y=V3, fill=V2, pattern_density=factor(V4)), pattern='stripes', color='black', pattern_fill='black') + 
+  geom_boxplot_pattern(outlier.shape = NA, width = 0.5) +
+  theme_classic()+
+  labs(title=element_blank(), x=element_blank(), y='Y(II)', fill=element_blank(), pattern_density='Day',) + 
+  scale_pattern_manual(values = list) +
+  theme(axis.text.x = element_text(size = 15)) +
+  scale_x_discrete(labels=c('+H20','MB+M \n+H20', '-H20', 'MB+M \n-H20 ')) +
+  scale_fill_brewer(labels = c('+H20','MB+M \n+H20', '-H20', 'MB+M \n-H20 '), palette = 'Set1', guide = guide_legend(override.aes = list(pattern = 'none'))) +
+  theme(legend.key.size = unit(0.75, 'cm'))+
+  ylim(0,1.2)+
+  theme(axis.text.y = element_text(size=12))
+
+bpbdep_master+theme(legend.position='none',axis.title.y=element_text(size=15))
+
+ggsave("CFP.eps", height =4 , width = 6,dpi=500)
+
+
+nova = aov(bdep$V3 ~ factor(bdep$V4) / factor(bdep$V2))
+
+summary(nova)
+
+capture.output(summary(nova),file='aovdays.txt')
+
+TukeyHSD(nova)
+
+
+
+#graphing and stats for soil data
+
+bdepo <- read.csv('cf olivias data.csv')
+head(bdepo)
+
+bdepo$Treatment <- as.factor(bdepo$Treatment)
+bdepo$Day <- as.factor(bdepo$Day)
+
+bdepro <- bdepo
+bdepro$Treatment <- factor(bdepro$Treatment, c('1','6','2','4','3','5','7'))
+head(bdepro)
+
+
+list <- c('0'='none', '14'='stripes')
+bpbdep_o <- ggplot(bdepro, names= label, aes(x=Treatment, y=Y.II., fill=Treatment, pattern_density=factor(Day)), pattern='stripes', color='black', pattern_fill='black') + 
+  geom_boxplot_pattern(outlier.shape = NA, width = 0.5) +
+  theme_classic()+
+  labs(title=element_blank(), x=element_blank(), y='Y(II)', fill=element_blank(), pattern_density='Day',) + 
+  scale_pattern_manual(values = list) +
+  theme(axis.text = element_text(size = 10)) +
+  scale_x_discrete(labels=c('-MB-M \n+H20','+MB+M \n+H20', '-MB-M \n-H20', '+MB+M \n-H20 ','-MB+M \n+H20','+MB-M \n-H20')) +
+  scale_fill_brewer(labels = c('+H20','MB+M \n+H20', '-H20', 'MB+M \n-H20 '), palette = 'Set1', guide = guide_legend(override.aes = list(pattern = 'none'))) +
+  theme(legend.key.size = unit(0.75, 'cm'))+
+  ylim(0,1.2)+
+  theme(axis.text.y = element_text(size=12))
+
+bpbdep_o
+
+nova_o = aov(bdepro$Y.II. ~ factor(bdepro$Day) / factor(bdepro$Treatment))
+
+summary(nova_o)
+
+TukeyHSD(nova_o)
+
+```
+
